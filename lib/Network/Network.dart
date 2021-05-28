@@ -6,7 +6,7 @@ class Network {
   
   static Future<PodoByPin> getData(String date,String pinCode) async {
      
-    final response = await https.get(Uri.parse("https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByPin?pincode=410206&date=27-05-2021"));
+    final response = await https.get(Uri.parse("https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByPin?pincode=${pinCode}&date=${date}"));
 
     if(response.statusCode == 200)
     {
@@ -15,7 +15,8 @@ class Network {
     else 
     {
       print("Unable to fetch data");
-      throw Exception();
+      dynamic error = jsonDecode(response.body);
+      return error;
     }
 
 

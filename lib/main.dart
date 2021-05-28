@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:html';
 import 'package:cowin_setu/PODO_By_Pin/podo_by_pin.dart';
 import 'package:flutter/material.dart';
 import 'Network/Network.dart';
@@ -18,6 +17,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+
   Future<PodoByPin> podoData;
   String pinCode;
   String date;
@@ -36,60 +36,74 @@ class _HomeState extends State<Home> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              "Please Enter Your Pin Code",
-              style: TextStyle(
-                color: Colors.grey[100],
-                fontSize: 15,
-              ),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            Container(
-              width: 400,
-              child: TextField(
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-                cursorColor: Colors.white,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                  hintText: "410206",
-                  hintStyle: TextStyle(
-                    color: Colors.grey,
-                  ),
-                  icon: Icon(
-                    Icons.location_city,
-                    color: Colors.grey,
-                  ),
-                  hoverColor: Colors.white,
-                ),
-                onSubmitted: (text) {
-                  setState(() {
-                    pinCode = text;
-                    date = DateUtil.loadDate();
-                    Timer.periodic(Duration(seconds: 3), (timer) {
-                      setState(() {
-                        index++;
-                        podoData = Network.getData(date, text);
-                        podoData.then((value) {
-                          print(
-                              "$index]${value.sessions[1].name}-> D1 : ${value.sessions[0].availableCapacityDose1}, D2 : ${value.sessions[0].availableCapacityDose2}");
-                        });
-                      });
-                    });
-                  });
-                },
-              ),
-            ),
+            pinCodeText(),
+            sizedBox(),
+            loadTextField(),
           ],
         ),
       ),
       backgroundColor: Colors.grey[900],
     );
+  }
+
+  Widget loadTextField() {
+    return Container(
+      width: 400,
+      child: TextField(
+        style: TextStyle(
+          color: Colors.white,
+        ),
+        cursorColor: Colors.white,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20)),
+            borderSide: BorderSide(color: Colors.white),
+          ),
+          hintText: "410206",
+          hintStyle: TextStyle(
+            color: Colors.grey,
+          ),
+          icon: Icon(
+            Icons.location_city,
+            color: Colors.grey,
+          ),
+          hoverColor: Colors.white,
+        ),
+        onSubmitted: (text) {
+          podoData = Network.getData(date, text);
+          if (podoData == null) {
+            SnackBar(content: Text("unable to get data"));
+          }
+          else{
+            // bool ValidRequest = makeApiRequestsAtIntervals(text);
+            podoData = Network.getData(date, text);
+            podoData.then((value) {
+            if(value.sessions.length==0)
+              return false;
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  bool makeApiRequestsAtIntervals(String text) {
+    setState(() {
+      pinCode = text;
+      date = DateUtil.loadDate();
+      Timer.periodic(Duration(seconds: 3), (timer) {
+        setState(() {
+          index++;
+          podoData = Network.getData(date, text);
+          podoData.then((value) {
+            if(value.sessions.length==0)
+              return false;
+            print(
+                "$index]${value.sessions[1].name}-> D1 : ${value.sessions[1].availableCapacityDose1}, D2 : ${value.sessions[1].availableCapacityDose2}");
+          });
+        });
+      });
+    });
+    return true;
   }
 }
