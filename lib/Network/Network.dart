@@ -14,9 +14,9 @@ class Network {
     }
     else 
     {
-      print("Unable to fetch data");
-      dynamic error = jsonDecode(response.body);
-      return error;
+      PodoByPin error_podo = PodoByPin();
+      error_podo.error = true;
+      return error_podo;
     }
 
 

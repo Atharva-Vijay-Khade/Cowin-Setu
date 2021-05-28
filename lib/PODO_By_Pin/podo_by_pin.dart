@@ -2,6 +2,7 @@
 
 class PodoByPin {
   
+  bool error;
   List<Sessions> sessions;
 
   PodoByPin({this.sessions});

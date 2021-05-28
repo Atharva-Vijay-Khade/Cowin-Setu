@@ -17,7 +17,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
   Future<PodoByPin> podoData;
   String pinCode;
   String date;
@@ -70,18 +69,22 @@ class _HomeState extends State<Home> {
           hoverColor: Colors.white,
         ),
         onSubmitted: (text) {
+          date = DateUtil.loadDate();
           podoData = Network.getData(date, text);
-          if (podoData == null) {
-            SnackBar(content: Text("unable to get data"));
-          }
-          else{
-            // bool ValidRequest = makeApiRequestsAtIntervals(text);
-            podoData = Network.getData(date, text);
-            podoData.then((value) {
-            if(value.sessions.length==0)
-              return false;
-            });
-          }
+          podoData.then((value) {
+            if(value.error==true){
+              print("Invalid Pincode");
+            }
+            else if (value.sessions.length == 0) {
+              print("currently not as vaccine provider");
+            } else {
+              // Handling of server side error left, to be done !
+              bool validRequest = makeApiRequestsAtIntervals(text);
+              if (!validRequest) {
+                print("Unable to fecth data");
+              }
+            }
+          });
         },
       ),
     );
@@ -96,8 +99,12 @@ class _HomeState extends State<Home> {
           index++;
           podoData = Network.getData(date, text);
           podoData.then((value) {
-            if(value.sessions.length==0)
+            if(value.error==true){
               return false;
+            }
+            else if (value.sessions.length == 0) {
+              return false;
+            }
             print(
                 "$index]${value.sessions[1].name}-> D1 : ${value.sessions[1].availableCapacityDose1}, D2 : ${value.sessions[1].availableCapacityDose2}");
           });
