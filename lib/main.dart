@@ -49,6 +49,7 @@ class _HomeState extends State<Home> {
     return Container(
       width: 400,
       child: TextField(
+        keyboardType: TextInputType.number,
         style: TextStyle(
           color: Colors.white,
         ),
@@ -106,7 +107,7 @@ class _HomeState extends State<Home> {
               return false;
             }
             print(
-                "$index]${value.sessions[1].name}-> D1 : ${value.sessions[1].availableCapacityDose1}, D2 : ${value.sessions[1].availableCapacityDose2}");
+                "$index]${value.sessions[0].name}-> D1 : ${value.sessions[0].availableCapacityDose1}, D2 : ${value.sessions[0].availableCapacityDose2}");
           });
         });
       });
