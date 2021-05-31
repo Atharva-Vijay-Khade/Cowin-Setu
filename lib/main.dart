@@ -31,21 +31,26 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: loadAppBar(),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            pinCodeText(),
-            sizedBox(),
-            loadTextField(),
-          ],
-        ),
-      ),
+      body: Builder(
+          // by this builder we create a context of child of scaffold, which we have to use to display the snackbar
+          builder: (context) {
+        // passing context of widget that instantiated scaffold won't work, thus we create this context
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              pinCodeText(),
+              sizedBox(),
+              loadTextField(context),
+            ],
+          ),
+        );
+      }),
       backgroundColor: Colors.grey[900],
     );
   }
 
-  Widget loadTextField() {
+  Widget loadTextField(BuildContext context) {
     return Container(
       width: 400,
       child: TextField(
@@ -73,16 +78,30 @@ class _HomeState extends State<Home> {
           date = DateUtil.loadDate();
           podoData = Network.getData(date, text);
           podoData.then((value) {
-            if(value.error==true){
-              print("Invalid Pincode");
-            }
-            else if (value.sessions.length == 0) {
-              print("currently not as vaccine provider");
+            if (value.error == true) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  duration: Duration(seconds: 5),
+                  content: Text("Invalid Pincode"),
+                ),
+              );
+            } else if (value.sessions.length == 0) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  duration: Duration(seconds: 5),
+                  content: Text("Currently not serving as vaccine provider"),
+                ),
+              );
             } else {
               // Handling of server side error left, to be done !
-              bool validRequest = makeApiRequestsAtIntervals(text);
+              bool validRequest = makeApiRequestsAtIntervals(text, context);
               if (!validRequest) {
-                print("Unable to fecth data");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    duration: Duration(seconds: 5),
+                    content: Text("Unable to fetch data, Try again later : ("),
+                  ),
+                );
               }
             }
           });
@@ -91,7 +110,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  bool makeApiRequestsAtIntervals(String text) {
+  bool makeApiRequestsAtIntervals(String text, context) {
     setState(() {
       pinCode = text;
       date = DateUtil.loadDate();
@@ -100,14 +119,16 @@ class _HomeState extends State<Home> {
           index++;
           podoData = Network.getData(date, text);
           podoData.then((value) {
-            if(value.error==true){
-              return false;
+            if (value.error == true) {
+              print("Server Side Error");
+            } else if (value.sessions.length == 0) {
+              print("Not serving vaccine as of now");
             }
-            else if (value.sessions.length == 0) {
-              return false;
-            }
-            print(
-                "$index]${value.sessions[0].name}-> D1 : ${value.sessions[0].availableCapacityDose1}, D2 : ${value.sessions[0].availableCapacityDose2}");
+            value.sessions.forEach((element) {
+              if (element.availableCapacityDose1 > 0 ||
+                  element.availableCapacityDose2 > 0) {//logic to be added here
+                  }
+            });
           });
         });
       });
